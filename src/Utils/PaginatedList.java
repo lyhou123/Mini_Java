@@ -23,7 +23,7 @@ public class PaginatedList<T> {
     }
 
     public List<T> getPage(int pageNumber) {
-        if (listOfPages == null  pageNumber > listOfPages.size()  pageNumber <  1) {
+        if (listOfPages == null || pageNumber > listOfPages.size() || pageNumber <  1) {
             return Collections.emptyList();
         }
         currentPage = pageNumber;
@@ -49,10 +49,10 @@ public class PaginatedList<T> {
     }
 
     private void initPages() {
-        if (list == null  listOfPages != null) {
+        if (list == null || listOfPages != null) {
             return;
         }
-        if (pageSize <=  0  pageSize > list.size()) {
+        if (pageSize <=  0 ||  pageSize > list.size()) {
             pageSize = list.size();
         }
         int numOfPages = (int) Math.ceil((double) list.size() / (double) pageSize);

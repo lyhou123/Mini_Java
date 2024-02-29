@@ -1,5 +1,8 @@
 package dao;
 import ProductModel.Product;
+
+import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 public interface ProductService {
     void randomProduct();
@@ -9,7 +12,7 @@ public interface ProductService {
     Product readProduct(String id);
     Product readProductByName(String name);
     void showProducts();
-    void writeProductsToFileDatabase();
+    void writeProductsToFileDatabase(List<Product> products);
     void writeProductsToFile();
     String validate(String message, Scanner scanner, String regex);
     void SetRow();

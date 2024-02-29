@@ -27,7 +27,7 @@ public class ClassUI {
         table.addCell("Exit    (e)");
         table.addCell("Delete  (d)");
         table.addCell("Search  (s)");
-        table.addCell("SetRow  (r)");
+        table.addCell("SetRow  (o)");
         table.addCell("Commit  (m)");
         table.addCell("BackUp  (k)");
         table.addCell("Restore (t)");
