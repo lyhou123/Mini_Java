@@ -13,7 +13,7 @@
   </li>
   <li>
   View Tasks: Users can view all tasks currently stored in the system.
-        /li>
+        </li>
     <li>
 Update Task: Users can update existing tasks, modifying details such as description, priority, or deadline.
       </li>
