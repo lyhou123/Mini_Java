@@ -69,7 +69,6 @@ public class ProductConstroller {
     {
         productService.commitData();
 
-        Lyhou Phiv, [29-Feb-24 1:07 PM]
     }
     public static void checkCommit()
     {
