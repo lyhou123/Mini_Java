@@ -52,7 +52,7 @@ public class PaginatedList<T> {
         if (list == null || listOfPages != null) {
             return;
         }
-        if (pageSize <=  0 ||  pageSize > list.size()) {
+        if (pageSize <=  0 || pageSize > list.size()) {
             pageSize = list.size();
         }
         int numOfPages = (int) Math.ceil((double) list.size() / (double) pageSize);
@@ -63,6 +63,5 @@ public class PaginatedList<T> {
             listOfPages.add(list.subList(from, to));
         }
     }
-
 }
 
