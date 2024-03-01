@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,7 +23,6 @@ public class ProductServiceImpl implements ProductService {
     private static final String FILE_NAME = "products1.dat";
     private static final String FILE_NAME1 = "database.dat";
     private static final String BACKUP_DIR = "backup";
-    private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     String backupDir = "backup";
     String backupFileName = "database_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".bak";
     private static List<Product> products = new ArrayList<>();
@@ -32,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
         Scanner input = new Scanner(System.in);
         System.out.print("Enter the number of records you want to generate: ");
         int numberOfRecords = input.nextInt();
-        Random random = new Random();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         int batchSize = 1000; // Adjust the batch size based on performance testing
         for (int i = 0; i < numberOfRecords; i += batchSize) {
             int currentBatchSize = Math.min(batchSize, numberOfRecords - i);
