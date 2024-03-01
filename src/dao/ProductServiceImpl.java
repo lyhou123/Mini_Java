@@ -8,39 +8,41 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class ProductServiceImpl implements ProductService{
+public class ProductServiceImpl implements ProductService {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RESET = "\u001B[0m";
     private static final int PROGRESS_BAR_LENGTH = 100;
-    static Scanner scanner=new Scanner(System.in);
+    static Scanner scanner = new Scanner(System.in);
     private static final String FILE_NAME = "products1.dat";
     private static final String FILE_NAME1 = "database.dat";
     private static final String BACKUP_DIR = "backup";
+    private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     String backupDir = "backup";
     String backupFileName = "database_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".bak";
     private static List<Product> products = new ArrayList<>();
     private static long time;
-    public  void randomProduct() {
+
+    public void randomProduct() {
         Scanner input = new Scanner(System.in);
-        System.out.println("Enter the number of records you want to generate: ");
+        System.out.print("Enter the number of records you want to generate: ");
         int numberOfRecords = input.nextInt();
         Random random = new Random();
-        int batchSize = 10000; // Adjust the batch size based on performance testing
+        int batchSize = 1000; // Adjust the batch size based on performance testing
         for (int i = 0; i < numberOfRecords; i += batchSize) {
             int currentBatchSize = Math.min(batchSize, numberOfRecords - i);
-            List<Product> batchProducts = new ArrayList<>();
             for (int j = 0; j < currentBatchSize; j++) {
-                String id = String.valueOf(random.nextInt(123456789)+1);
+                String id = String.valueOf(random.nextInt(123456789) + 1);
                 String name = "Product::" + id;
-//            double price = random.nextDouble() * 1000;
                 double price = Math.round(random.nextDouble() * 100 * 100.0) / 100.0;
                 Product product = new Product(id, name, price, 12, LocalDate.now());
-                batchProducts.add(product);
+               products.add(product);
             }
-            products.addAll(batchProducts);
             int progress = (int) ((double) (i + currentBatchSize) / numberOfRecords * PROGRESS_BAR_LENGTH);
             String progressBar = ANSI_GREEN + "\rGenerating products: [" +
                     "=".repeat(progress) + "] " +
@@ -48,26 +50,28 @@ public class ProductServiceImpl implements ProductService{
                     ANSI_RESET;
             System.out.print(progressBar);
         }
-
-        System.out.println();
         long start = System.currentTimeMillis();
-        writeProductsToFileDatabase();
+        writeProductsToFileDatabase(products);
         long end = System.currentTimeMillis();
-        System.out.println("\nTime taken to write products: " + (end - start) + "ms");
+        System.out.println("\nTime taken to write products: " + (end - start)+ "ms |"+(end - start)/1000 +" s");
     }
+
     static {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME1))) {
             long start = System.currentTimeMillis();
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                String id =parts[0].replaceAll("[']", "").split("=")[1];
-                String name  = parts[1].replaceAll("[']", "").split("=")[1];
-                double price = Double.parseDouble(parts[2].split("=")[1]);
-                int quantity = Integer.parseInt(parts[3].split("=")[1]);
-                String dateString = parts[4].split("=")[1].replace("}", ""); // Remove unnecessary character '}'
-                LocalDate localDate = LocalDate.parse(dateString);
-                products.add( new Product(id, name, price, quantity, localDate));
+                if(parts.length==5) {
+                    String id = parts[0].substring(parts[0].indexOf("=") + 1);
+                    String name = parts[1].substring(parts[1].indexOf("=") + 1);
+                    double price = Double.parseDouble(parts[2].substring(parts[2].indexOf("=") + 1));
+                    int quantity = Integer.parseInt(parts[3].substring(parts[3].indexOf("=") + 1));
+                    LocalDate localDate = LocalDate.parse(parts[4].substring(parts[4].indexOf("=") + 1).replace("}", ""));
+                    products.add(new Product(id, name, price, quantity, localDate));
+                }else{
+                    System.err.println("<<<<<<<<<<<<<< No data to show>>>>>>>>>>>");
+                }
             }
             long end = System.currentTimeMillis();
             time = (end - start)/1000;
@@ -218,12 +222,13 @@ public class ProductServiceImpl implements ProductService{
         }
 
     }
-    public void writeProductsToFileDatabase() {
+    public void writeProductsToFileDatabase(List<Product> products) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME1))) {
             for (Product product : products) {
                 bufferedWriter.write(product.toString());
                 bufferedWriter.newLine();
             }
+            System.out.println();
             System.out.println("Data has been successfully written to the file.");
         } catch (IOException e) {
             System.err.println("Error writing data to the file: " + e.getMessage());
