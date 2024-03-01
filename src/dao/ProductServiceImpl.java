@@ -63,8 +63,10 @@ public class ProductServiceImpl implements ProductService {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
                 if(parts.length==5) {
-                    String id = parts[0].substring(parts[0].indexOf("=") + 1);
-                    String name = parts[1].substring(parts[1].indexOf("=") + 1);
+                    String id = parts[0].substring(parts[0].indexOf("=") + 1).replaceAll("'", "");
+                    String name = parts[1].substring(parts[1].indexOf("=") + 1).replaceAll("'", "");
+//                    String id = parts[0].substring(parts[0].indexOf("=") + 1);
+//                    String name = parts[1].substring(parts[1].indexOf("=") + 1);
                     double price = Double.parseDouble(parts[2].substring(parts[2].indexOf("=") + 1));
                     int quantity = Integer.parseInt(parts[3].substring(parts[3].indexOf("=") + 1));
                     LocalDate localDate = LocalDate.parse(parts[4].substring(parts[4].indexOf("=") + 1).replace("}", ""));
@@ -120,7 +122,6 @@ public class ProductServiceImpl implements ProductService {
                         product.setQty(scanner.nextInt());
                     }
                 }
-                ;
                 String message=validate("Please enter <Yes> or <No> for delete product=",scanner,"^(?:Yes|No)$");
                 if(message.equalsIgnoreCase("yes"))
                 {

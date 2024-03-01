@@ -61,9 +61,10 @@ public class ProductConstroller {
             ClassUI.viewProductList(products);
             System.out.println("Press Key To Continuous");
             scanner.nextLine();
-        } else {
-            System.out.println("ProductModel.Product not found.");
+        }else{
+
         }
+
     }
     public static void Commit()
     {
