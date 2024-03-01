@@ -96,48 +96,49 @@ public class ProductServiceImpl implements ProductService {
         long end = System.currentTimeMillis();
         System.out.println("Time taken to create product: " + (end - start) + "ms");
     }
-    public void updateProduct(String id) {
+    public void updateProduct(String idToUpdate) {
+        boolean found = false;
         for (Product product : products) {
-            if (product.getId().equals(id)) {
+            if (product.getId().equals(idToUpdate)) {
+                found = true;
                 ClassUI.Product(product);
-                System.out.println("Enter   1 Update Id,   2 Update Name,   3 Update Price,   4 Update QTY,");
-                String op=validate("Enter option=",new Scanner(System.in),"[1-4]+");
-                int op1=Integer.parseInt(op);
-                switch (op1)
-                {
-                    case 1->{
+                System.out.println("Enter 1 Update Id, 2 Update Name, 3 Update Price, 4 Update QTY: 5.Back ");
+                String op = validate("Enter option=", new Scanner(System.in), "[1-5]+");
+                int op1 = Integer.parseInt(op);
+                switch (op1) {
+                    case 1 -> {
                         System.out.print("Please enter new ID=");
                         product.setId(scanner.nextLine());
                     }
-                    case 2-> {
+                    case 2 -> {
                         System.out.print("Please enter new Product Name=");
                         product.setName(scanner.nextLine());
                     }
-                    case 3-> {
+                    case 3 -> {
                         System.out.print("Please enter new Product Price=");
                         product.setPrice(scanner.nextDouble());
                     }
-                    case 4-> {
+                    case 4 -> {
                         System.out.print("Please Enter New Product QTY=");
                         product.setQty(scanner.nextInt());
                     }
+                    case 5-> {return ;}
                 }
-                String message=validate("Please enter <Yes> or <No> for delete product=",scanner,"^(?:Yes|No)$");
-                if(message.equalsIgnoreCase("yes"))
-                {
+                String message = validate("Please enter <Yes> or <No> for Update product=", scanner, "^(?:Yes|No)$");
+                if (message.equalsIgnoreCase("yes")) {
                     ClassUI.Product(product);
-                }else{
-                    System.out.println("Thanks You Product already cancel");
+
+                } else {
+                    System.out.println("Thank you. Product remains unchanged.");
                 }
-                break;
-            }else{
-                System.err.println("<<<<<<<<<<<<<< Product Not Found >>>>>>>>>>>>>>");
-                return ;
+                break; // Exit the loop once product is found and updated
             }
+        }
+        if (!found) {
+            System.err.println("Product Not Found.");
         }
         writeProductsToFile();
     }
-
     public  void deleteProduct(String id) {
         boolean productFound = false;
         for (Product product : products) {
