@@ -198,3 +198,4 @@ Product{id='44708550', name='Product::44708550', price=81.09, qty=12, localDate=
 Product{id='99309453', name='Product::99309453', price=1.18, qty=12, localDate=2024-03-01}
 Product{id='60724573', name='Product::60724573', price=54.29, qty=12, localDate=2024-03-01}
 Product{id='34936498', name='Product::34936498', price=45.56, qty=12, localDate=2024-03-01}
+Product{id='1001', name='coca', price=12.0, qty=12, localDate=2024-03-01}
