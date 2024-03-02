@@ -8,12 +8,10 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ProductServiceImpl implements ProductService {
     public static final String ANSI_GREEN = "\u001B[32m";
@@ -23,6 +21,7 @@ public class ProductServiceImpl implements ProductService {
     private static final String FILE_NAME = "products1.dat";
     private static final String FILE_NAME1 = "database.dat";
     private static final String BACKUP_DIR = "backup";
+    private static final int THREAD_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     String backupDir = "backup";
     String backupFileName = "database_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".bak";
     private static List<Product> products = new ArrayList<>();
@@ -33,6 +32,7 @@ public class ProductServiceImpl implements ProductService {
         System.out.print("Enter the number of records you want to generate: ");
         int numberOfRecords = input.nextInt();
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        long start = System.currentTimeMillis();
         int batchSize = 1000; // Adjust the batch size based on performance testing
         for (int i = 0; i < numberOfRecords; i += batchSize) {
             int currentBatchSize = Math.min(batchSize, numberOfRecords - i);
@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
                 String name = "Product::" + id;
                 double price = Math.round(random.nextDouble() * 100 * 100.0) / 100.0;
                 Product product = new Product(id, name, price, 12, LocalDate.now());
-               products.add(product);
+                products.add(product);
             }
             int progress = (int) ((double) (i + currentBatchSize) / numberOfRecords * PROGRESS_BAR_LENGTH);
             String progressBar = ANSI_GREEN + "\rGenerating products: [" +
@@ -50,13 +50,14 @@ public class ProductServiceImpl implements ProductService {
                     ANSI_RESET;
             System.out.print(progressBar);
         }
-        long start = System.currentTimeMillis();
+        System.out.println();
         writeProductsToFileDatabase(products);
         long end = System.currentTimeMillis();
         System.out.println("\nTime taken to write products: " + (end - start)+ "ms |"+(end - start)/1000 +" s");
     }
 
     static {
+        System.out.print("Loading products...");
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME1))) {
             long start = System.currentTimeMillis();
             String line;
@@ -64,9 +65,7 @@ public class ProductServiceImpl implements ProductService {
                 String[] parts = line.split(",");
                 if(parts.length==5) {
                     String id = parts[0].substring(parts[0].indexOf("=") + 1).replaceAll("'", "");
-                    String name = parts[1].substring(parts[1].indexOf("=") + 1).replaceAll("'", "");
-//                    String id = parts[0].substring(parts[0].indexOf("=") + 1);
-//                    String name = parts[1].substring(parts[1].indexOf("=") + 1);
+                    String name = parts[1].substring(parts[1].indexOf("=") + 1).replaceAll("'","");
                     double price = Double.parseDouble(parts[2].substring(parts[2].indexOf("=") + 1));
                     int quantity = Integer.parseInt(parts[3].substring(parts[3].indexOf("=") + 1));
                     LocalDate localDate = LocalDate.parse(parts[4].substring(parts[4].indexOf("=") + 1).replace("}", ""));
@@ -90,20 +89,22 @@ public class ProductServiceImpl implements ProductService {
         }
     }
     public void createProduct(Product product) {
+        List<Product> products1=new ArrayList<>();
         long start = System.currentTimeMillis();
-        products.add(product);
-        writeProductsToFile();
+        products1.add(product);
+        products.addAll(products1);
+        writeProductsToFile(products1);
         long end = System.currentTimeMillis();
         System.out.println("Time taken to create product: " + (end - start) + "ms");
     }
-    public void updateProduct(String idToUpdate) {
-        boolean found = false;
+    public void updateProduct(String id) {
+        boolean check=false;
         for (Product product : products) {
-            if (product.getId().equals(idToUpdate)) {
-                found = true;
+            if (product.getId().equals(id)) {
+                check = true;
                 ClassUI.Product(product);
-                System.out.println("Enter 1 Update Id, 2 Update Name, 3 Update Price, 4 Update QTY: 5.Back ");
-                String op = validate("Enter option=", new Scanner(System.in), "[1-5]+");
+                System.out.println("Enter   1 Update Id,   2 Update Name,   3 Update Price,   4 Update QTY,");
+                String op = validate("Enter option=", new Scanner(System.in), "[1-4]+");
                 int op1 = Integer.parseInt(op);
                 switch (op1) {
                     case 1 -> {
@@ -122,22 +123,21 @@ public class ProductServiceImpl implements ProductService {
                         System.out.print("Please Enter New Product QTY=");
                         product.setQty(scanner.nextInt());
                     }
-                    case 5-> {return ;}
                 }
-                String message = validate("Please enter <Yes> or <No> for Update product=", scanner, "^(?:Yes|No)$");
+                String message = validate("Please enter <Yes> or <No> for delete product=", scanner, "^(?:Yes|No)$");
                 if (message.equalsIgnoreCase("yes")) {
                     ClassUI.Product(product);
-
                 } else {
-                    System.out.println("Thank you. Product remains unchanged.");
+                    System.out.println("Thanks You Product already cancel");
                 }
-                break; // Exit the loop once product is found and updated
+                break;
+                }
             }
+        if(!check) {
+            System.err.println("<<<<<<<<<<<<<< Product Not Found >>>>>>>>>>>>>>");
+            return;
         }
-        if (!found) {
-            System.err.println("Product Not Found.");
-        }
-        writeProductsToFile();
+        writeProductsToFile(products);
     }
     public  void deleteProduct(String id) {
         boolean productFound = false;
@@ -156,7 +156,7 @@ public class ProductServiceImpl implements ProductService {
         if(message.equalsIgnoreCase("yes"))
         {
             products.removeIf(product -> product.getId().equals(id));
-            writeProductsToFile();
+            writeProductsToFile(products);
         }else{
             System.out.println("Thanks You Product already cancel");
         }
@@ -224,19 +224,35 @@ public class ProductServiceImpl implements ProductService {
         }
 
     }
-    public void writeProductsToFileDatabase(List<Product> products) {
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME1))) {
-            for (Product product : products) {
-                bufferedWriter.write(product.toString());
+//    public void writeProductsToFileDatabase(List<Product> products) {
+//        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME1,true))) {
+//            for (Product product : products) {
+//                bufferedWriter.write(product.toString());
+//                bufferedWriter.newLine();
+//            }
+//            System.out.println("Data has been successfully written to the file.");
+//        } catch (IOException e) {
+//            System.err.println("Error writing data to the file: " + e.getMessage());
+//        }
+//    }
+public void writeProductsToFileDatabase(List<Product> products) {
+    try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME1, true))) {
+        int batchSize = 1000; // Adjust the batch size based on performance testing
+        for (int i = 0; i < products.size(); i += batchSize) {
+            int end = Math.min(products.size(), i + batchSize);
+            for (int j = i; j < end; j++) {
+                bufferedWriter.write(products.get(j).toString());
                 bufferedWriter.newLine();
             }
-            System.out.println();
-            System.out.println("Data has been successfully written to the file.");
-        } catch (IOException e) {
-            System.err.println("Error writing data to the file: " + e.getMessage());
+            bufferedWriter.flush(); // Flush the buffer after writing each batch
         }
+        System.out.println("Data has been successfully written to the file.");
+    } catch (IOException e) {
+        System.err.println("Error writing data to the file: " + e.getMessage());
     }
-    public void writeProductsToFile() {
+}
+
+    public void writeProductsToFile(List<Product> products) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME))) {
             for (Product product : products) {
                 bufferedWriter.write(product.toString() + "\n");
@@ -329,18 +345,21 @@ public class ProductServiceImpl implements ProductService {
         }
     }
     public void commitData() {
+       List<Product> productList=new ArrayList<>();
+       Product product;
         File productFile = new File(FILE_NAME);
         if (productFile.length() == 0) {
             System.err.println("<<<<<<<<<< No data to commit into database >>>>>>>>>>");
             return ;
         }
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME));
-             BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME1))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                writer.write(line);
-                writer.newLine();
+             product=writeLineToProduct(line);
+             productList.add(product);
             }
+            products.addAll(productList);
+            writeProductsToFileDatabase(productList);
             System.out.println("Data committed successfully from " + FILE_NAME + " to " + FILE_NAME1);
         } catch (IOException e) {
             System.err.println("Error committing data: " + e.getMessage());
@@ -372,10 +391,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public  Product writeLineToProduct(String line) {
+    public Product writeLineToProduct(String line) {
         String[] parts = line.split(",");
-
-        if (parts.length == 3) {
+        if (parts.length == 5) {
             try {
                 String[] parts1 = line.split(",");
                 String id =parts1[0].replaceAll("[']", "").split("=")[1];
@@ -391,7 +409,6 @@ public class ProductServiceImpl implements ProductService {
         } else {
             System.out.println("Invalid line format: " + line);
         }
-
         return null;
     }
     public void restoreProducts() {
