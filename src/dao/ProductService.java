@@ -13,7 +13,7 @@ public interface ProductService {
     Product readProductByName(String name);
     void showProducts();
     void writeProductsToFileDatabase(List<Product> products);
-    void writeProductsToFile();
+    void writeProductsToFile(List<Product> products);
     String validate(String message, Scanner scanner, String regex);
     void SetRow();
     void BackupProducts();

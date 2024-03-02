@@ -8,6 +8,7 @@ public class Product {
     private double price;
     private int qty;
     LocalDate localDate;
+    public Product(){}
 
     public Product(String id, String name, double price,int qty,LocalDate localDate) {
         this.id = id;

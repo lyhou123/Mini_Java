@@ -40,30 +40,29 @@ public class ProductConstroller {
     }
     public static void Search()
     {
-        List<Product> products=new ArrayList<>();
         System.out.println("1. Search By Product ID       2. Search By Product Name");
         String op2= productService.validate("Enter option=",new Scanner(System.in),"[1-4]+");
         int op1=Integer.parseInt(op2);
         Product product = null;
         switch (op1) {
-            case 1-> {
+            case 1 -> {
                 System.out.print("Enter ID for Search=");
-                String id =scanner.nextLine();
-                product = productService.readProduct(id);
+                String id = scanner.nextLine();
+               product=  productService.readProduct(id);
             }
-            case 2->{
-                String name  = ProductInputValidator.getStringInput("Enter Product Name: ");
-                product = productService.readProductByName(name);
+            case 2 -> {
+                String name = ProductInputValidator.getStringInput("Enter Product Name: ");
+                product= productService.readProductByName(name);
             }
+
         }
-        if (product != null) {
-            products.add(product);
-            ClassUI.viewProductList(products);
-            System.out.println("Press Key To Continuous");
-            scanner.nextLine();
-        } else {
-            System.out.println("ProductModel.Product not found.");
+        if(product==null)
+        {
+            System.out.println("<<<<<<<<<<<<<<<<<<<< Product Not Found >>>>>>>>>>>>>>>>>>>>");
         }
+        System.out.println("Press Key To Continuous");
+        scanner.nextLine();
+
     }
     public static void Commit()
     {
@@ -84,13 +83,19 @@ public class ProductConstroller {
             case 1-> {
                 System.out.print("Enter ID for Search=");
                 String id =scanner.nextLine();
-                productService.readProduct(id);
+               product= productService.readProduct(id);
             }
             case 2->{
                 String name  = ProductInputValidator.getStringInput("Enter Product Name: ");
-                productService.readProductByName(name);
+               product= productService.readProductByName(name);
             }
         }
+        if(product==null)
+        {
+            System.out.println("<<<<<<<<<<<<<<<<<<<< Product Not Found >>>>>>>>>>>>>>>>>>>>");
+        }
+        System.out.println("Press Key To Continuous");
+        scanner.nextLine();
     }
     public static void BackUp()
     {
