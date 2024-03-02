@@ -251,6 +251,7 @@ public void writeProductsToFileDatabase(List<Product> products) {
         System.err.println("Error writing data to the file: " + e.getMessage());
     }
 }
+
     public void writeProductsToFile(List<Product> products) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME))) {
             for (Product product : products) {
