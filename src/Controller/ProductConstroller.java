@@ -56,14 +56,12 @@ public class ProductConstroller {
                 product = productService.readProductByName(name);
             }
         }
-        if (product != null) {
-            products.add(product);
-            ClassUI.viewProductList(products);
-            System.out.println("Press Key To Continuous");
-            scanner.nextLine();
-        }else{
-
+        if(product==null)
+        {
+            System.out.println("<<<<<<<<<<<<<<<<<<<< Product Not Found >>>>>>>>>>>>>>>>>>>>");
         }
+        System.out.println("Press Key To Continuous");
+        scanner.nextLine();
 
     }
     public static void Commit()
